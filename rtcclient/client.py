@@ -4,7 +4,7 @@ from rtcclient import exception
 from rtcclient.project_area import ProjectArea
 from rtcclient.workitem import Workitem
 from rtcclient.models import TeamArea, Member, Administrator, PlannedFor
-from rtcclient.models import Severity, Priority, ItemType, SavedQuery
+from rtcclient.models import Severity, HowFound, Component, OperatingSystem, Priority, ItemType, SavedQuery
 from rtcclient.models import FiledAgainst, FoundIn, Comment, Action, State
 from rtcclient.models import IncludedInBuild, ChangeSet, Attachment
 import logging
@@ -600,6 +600,235 @@ class RTCClient(RTCBase):
                                          projectarea_id=projarea_id,
                                          page_size="10",
                                          filter_rule=filter_rule)
+
+
+    def getHowFound(self, howfound_name, projectarea_id=None,
+                    projectarea_name=None):
+        """Get :class:`rtcclient.models.HowFound` object by its name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        :param howfound_name: the howfound name
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: the :class:`rtcclient.models.HowFound` object
+        :rtype: rtcclient.models.HowFound
+        """
+
+        self.log.debug("Try to get <HowFound %s>", howfound_name)
+        if not isinstance(howfound_name,
+                          six.string_types) or not howfound_name:
+            excp_msg = "Please specify a valid HowFound name"
+            self.log.error(excp_msg)
+            raise exception.BadValue(excp_msg)
+
+        howfounds = self._getHowFounds(projectarea_id=projectarea_id,
+                                         projectarea_name=projectarea_name,
+                                         howfound_name=howfound_name)
+
+        if howfounds is not None:
+            howfound = howfounds[0]
+            self.log.info("Find <HowFound %s>", howfound)
+            return howfound
+
+        self.log.error("No HowFound named %s", howfound_name)
+        raise exception.NotFound("No HowFound named %s" % howfound_name)
+
+
+    def getHowFounds(self, projectarea_id=None, projectarea_name=None):
+        """Get all :class:`rtcclient.models.HowFound` objects by
+        project area id or name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        If no :class:`rtcclient.models.HowFound` is retrieved,
+        `None` is returned.
+
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: a :class:`list` that contains all the
+            :class:`rtcclient.models.HowFound` objects
+        :rtype: list
+        """
+
+        return self._getHowFounds(projectarea_id=projectarea_id,
+                                   projectarea_name=projectarea_name)
+
+
+    def _getHowFounds(self, projectarea_id=None, projectarea_name=None,
+                       howfound_name=None):
+        projarea_id = self._pre_get_resource(projectarea_id=projectarea_id,
+                                             projectarea_name=projectarea_name)
+        if projarea_id is None:
+            self.log.error("Please input either-or between "
+                           "projectarea_id and projectarea_name")
+            raise exception.EmptyAttrib("At least input either-or between "
+                                        "projectarea_id and projectarea_name")
+
+        filter_rule = None
+        if howfound_name is not None:
+            fsname_rule = ("dc:title", None, howfound_name)
+            filter_rule = self._add_filter_rule(filter_rule, fsname_rule)
+
+        return self._get_paged_resources("HowFound",
+                                         projectarea_id=projarea_id,
+                                         page_size="10",
+                                         filter_rule=filter_rule)
+
+
+    def getComponent(self, component_name, projectarea_id=None,
+                    projectarea_name=None):
+        """Get :class:`rtcclient.models.Component` object by its name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        :param component_name: the component name
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: the :class:`rtcclient.models.Component` object
+        :rtype: rtcclient.models.Component
+        """
+
+        self.log.debug("Try to get <Component %s>", component_name)
+        if not isinstance(component_name,
+                          six.string_types) or not component_name:
+            excp_msg = "Please specify a valid Component name"
+            self.log.error(excp_msg)
+            raise exception.BadValue(excp_msg)
+
+        components = self._getComponents(projectarea_id=projectarea_id,
+                                         projectarea_name=projectarea_name,
+                                         component_name=component_name)
+
+        if components is not None:
+            component = components[0]
+            self.log.info("Find <Component %s>", component)
+            return component
+
+        self.log.error("No Component named %s", component_name)
+        raise exception.NotFound("No Component named %s" % component_name)
+
+
+    def getComponents(self, projectarea_id=None, projectarea_name=None):
+        """Get all :class:`rtcclient.models.Component` objects by
+        project area id or name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        If no :class:`rtcclient.models.Component` is retrieved,
+        `None` is returned.
+
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: a :class:`list` that contains all the
+            :class:`rtcclient.models.Component` objects
+        :rtype: list
+        """
+
+        return self._getComponents(projectarea_id=projectarea_id,
+                                   projectarea_name=projectarea_name)
+
+
+    def _getComponents(self, projectarea_id=None, projectarea_name=None,
+                       component_name=None):
+        projarea_id = self._pre_get_resource(projectarea_id=projectarea_id,
+                                             projectarea_name=projectarea_name)
+        if projarea_id is None:
+            self.log.error("Please input either-or between "
+                           "projectarea_id and projectarea_name")
+            raise exception.EmptyAttrib("At least input either-or between "
+                                        "projectarea_id and projectarea_name")
+
+        filter_rule = None
+        if component_name is not None:
+            fsname_rule = ("dc:title", None, component_name)
+            filter_rule = self._add_filter_rule(filter_rule, fsname_rule)
+
+        return self._get_paged_resources("Component",
+                                         projectarea_id=projarea_id,
+                                         page_size="10",
+                                         filter_rule=filter_rule)
+
+
+    def getOperatingSystem(self, operatingsystem_name, projectarea_id=None,
+                    projectarea_name=None):
+        """Get :class:`rtcclient.models.OperatingSystem` object by its name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        :param operatingsystem_name: the operatingsystem name
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: the :class:`rtcclient.models.OperatingSystem` object
+        :rtype: rtcclient.models.OperatingSystem
+        """
+
+        self.log.debug("Try to get <OperatingSystem %s>", operatingsystem_name)
+        if not isinstance(operatingsystem_name,
+                          six.string_types) or not operatingsystem_name:
+            excp_msg = "Please specify a valid OperatingSystem name"
+            self.log.error(excp_msg)
+            raise exception.BadValue(excp_msg)
+
+        operatingsystems = self._getOperatingSystems(projectarea_id=projectarea_id,
+                                         projectarea_name=projectarea_name,
+                                         operatingsystem_name=operatingsystem_name)
+
+        if operatingsystems is not None:
+            operatingsystem = operatingsystems[0]
+            self.log.info("Find <OperatingSystem %s>", operatingsystem)
+            return operatingsystem
+
+        self.log.error("No OperatingSystem named %s", operatingsystem_name)
+        raise exception.NotFound("No OperatingSystem named %s" % operatingsystem_name)
+
+
+    def getOperatingSystems(self, projectarea_id=None, projectarea_name=None):
+        """Get all :class:`rtcclient.models.OperatingSystem` objects by
+        project area id or name
+
+        At least either of `projectarea_id` and `projectarea_name` is given
+
+        If no :class:`rtcclient.models.OperatingSystem` is retrieved,
+        `None` is returned.
+
+        :param projectarea_id: the :class:`rtcclient.project_area.ProjectArea`
+            id
+        :param projectarea_name: the project area name
+        :return: a :class:`list` that contains all the
+            :class:`rtcclient.models.OperatingSystem` objects
+        :rtype: list
+        """
+
+        return self._getOperatingSystems(projectarea_id=projectarea_id,
+                                   projectarea_name=projectarea_name)
+
+
+    def _getOperatingSystems(self, projectarea_id=None, projectarea_name=None,
+                       operatingsystem_name=None):
+        projarea_id = self._pre_get_resource(projectarea_id=projectarea_id,
+                                             projectarea_name=projectarea_name)
+        if projarea_id is None:
+            self.log.error("Please input either-or between "
+                           "projectarea_id and projectarea_name")
+            raise exception.EmptyAttrib("At least input either-or between "
+                                        "projectarea_id and projectarea_name")
+
+        filter_rule = None
+        if operatingsystem_name is not None:
+            fsname_rule = ("dc:title", None, operatingsystem_name)
+            filter_rule = self._add_filter_rule(filter_rule, fsname_rule)
+
+        return self._get_paged_resources("OperatingSystem",
+                                         projectarea_id=projarea_id,
+                                         page_size="10",
+                                         filter_rule=filter_rule)
+
 
     def getPriority(self, priority_name, projectarea_id=None,
                     projectarea_name=None):
@@ -1226,6 +1455,9 @@ class RTCClient(RTCBase):
 
         projectarea_required = ["Workitem",
                                 "Severity",
+                                "HowFound",
+                                "Component",
+                                "OperatingSystem",
                                 "Priority",
                                 "Member",
                                 "Administrator",
@@ -1274,6 +1506,9 @@ class RTCClient(RTCBase):
                                               "rtc_cm:administrators"]),
                    "Workitem": "contexts/%s/workitems" % projectarea_id,
                    "Severity": "enumerations/%s/severity" % projectarea_id,
+                   "HowFound": "enumerations/%s/howFound" % projectarea_id,
+                   "Component": "enumerations/%s/component" % projectarea_id,
+                   "OperatingSystem": "enumerations/%s/operatingsystem" % projectarea_id,	
                    "Priority": "enumerations/%s/priority" % projectarea_id,
                    "Comment": "workitems/%s/rtc_cm:comments" % workitem_id,
                    "Subscriber": "/".join(["workitems",
@@ -1309,6 +1544,9 @@ class RTCClient(RTCBase):
                      "Administrator": "rtc_cm:User",
                      "Workitem": "oslc_cm:ChangeRequest",
                      "Severity": "rtc_cm:Literal",
+                     "HowFound": "rtc_cm:Literal",
+                     "Component": "rtc_cm:Literal",
+                     "OperatingSystem": "rtc_cm:Literal",
                      "Priority": "rtc_cm:Literal",
                      "Comment": "rtc_cm:Comment",
                      "Subscriber": "rtc_cm:User",
