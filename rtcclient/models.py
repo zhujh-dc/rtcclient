@@ -102,6 +102,33 @@ class Severity(FieldBase):
         return self.title
 
 
+class HowFound(FieldBase):
+    """Indication of HowFound of the work item"""
+
+    log = logging.getLogger("models.HowFound")
+
+    def __str__(self):
+        return self.title
+
+
+class Component(FieldBase):
+    """Component of the work item"""
+
+    log = logging.getLogger("models.Component")
+
+    def __str__(self):
+        return self.title
+
+
+class OperatingSystem(FieldBase):
+    """OperatingSystem of the work item"""
+
+    log = logging.getLogger("models.OperatingSystem")
+
+    def __str__(self):
+        return self.title
+
+
 class Priority(FieldBase):
     """Ranked importance of a work item"""
 
