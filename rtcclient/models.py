@@ -1,9 +1,11 @@
-from rtcclient.base import FieldBase
-from rtcclient import urlunquote, OrderedDict
 import logging
-import xmltodict
-import re
 import os
+import re
+
+import xmltodict
+
+from rtcclient import urlunquote, OrderedDict
+from rtcclient.base import FieldBase
 
 
 class Role(FieldBase):
@@ -20,8 +22,12 @@ class Member(FieldBase):
 
     log = logging.getLogger("models.Member")
 
-    def __init__(self, url, rtc_obj, raw_data=None):
-        FieldBase.__init__(self, url, rtc_obj, raw_data=raw_data)
+    def __init__(self, url, rtc_obj, raw_data=None, skip_full_attributes=True):
+        FieldBase.__init__(self,
+                           url,
+                           rtc_obj,
+                           raw_data=raw_data,
+                           skip_full_attributes=skip_full_attributes)
         # add a new attribute mainly for the un-recorded member use
         self.email = urlunquote(self.url.split("/")[-1])
 
@@ -134,9 +140,13 @@ class Comment(FieldBase):
 
     log = logging.getLogger("models.Comment")
 
-    def __init__(self, url, rtc_obj, raw_data=None):
+    def __init__(self, url, rtc_obj, raw_data=None, skip_full_attributes=True):
         self.id = url.split("/")[-1]
-        FieldBase.__init__(self, url, rtc_obj, raw_data)
+        FieldBase.__init__(self,
+                           url,
+                           rtc_obj,
+                           raw_data,
+                           skip_full_attributes=skip_full_attributes)
 
     def __str__(self):
         return self.id
@@ -147,9 +157,13 @@ class SavedQuery(FieldBase):
 
     log = logging.getLogger("models.SavedQuery")
 
-    def __init__(self, url, rtc_obj, raw_data=None):
+    def __init__(self, url, rtc_obj, raw_data=None, skip_full_attributes=True):
         self.id = url.split("/")[-1]
-        FieldBase.__init__(self, url, rtc_obj, raw_data)
+        FieldBase.__init__(self,
+                           url,
+                           rtc_obj,
+                           raw_data,
+                           skip_full_attributes=skip_full_attributes)
 
     def __str__(self):
         return self.title
@@ -181,12 +195,13 @@ class ChangeSet(FieldBase):
         """
 
         identifier = self.url.split("/")[-1]
-        resource_url = "/".join(["%s" % self.rtc_obj.url,
-                                 "resource/itemOid",
-                                 "com.ibm.team.scm.ChangeSet",
-                                 "%s?_mediaType=text/xml" % identifier])
+        resource_url = "/".join([
+            "%s" % self.rtc_obj.url, "resource/itemOid",
+            "com.ibm.team.scm.ChangeSet",
+            "%s?_mediaType=text/xml" % identifier
+        ])
         resp = self.get(resource_url,
-                        verify=False,
+                        verify=self.rtc_obj.verify,
                         proxies=self.rtc_obj.proxies,
                         headers=self.rtc_obj.headers)
         raw_data = xmltodict.parse(resp.content).get("scm:ChangeSet")
@@ -205,17 +220,13 @@ class ChangeSet(FieldBase):
         if isinstance(changes, OrderedDict):
             # only one single change
             changes.update(common_changes)
-            change_objs.append(Change(None,
-                                      self.rtc_obj,
-                                      raw_data=changes))
+            change_objs.append(Change(None, self.rtc_obj, raw_data=changes))
 
         elif isinstance(changes, list):
             # multiple changes
             for change in changes:
                 change.update(common_changes)
-                change_objs.append(Change(None,
-                                          self.rtc_obj,
-                                          raw_data=change))
+                change_objs.append(Change(None, self.rtc_obj, raw_data=change))
 
         return change_objs
 
@@ -225,8 +236,12 @@ class Change(FieldBase):
 
     log = logging.getLogger("models.Change")
 
-    def __init__(self, url, rtc_obj, raw_data=None):
-        FieldBase.__init__(self, url, rtc_obj, raw_data)
+    def __init__(self, url, rtc_obj, raw_data=None, skip_full_attributes=True):
+        FieldBase.__init__(self,
+                           url,
+                           rtc_obj,
+                           raw_data,
+                           skip_full_attributes=skip_full_attributes)
 
     def __str__(self):
         return self.internalId
@@ -279,24 +294,23 @@ class Change(FieldBase):
         if self.raw_data['item']['@xsi:type'] == 'scm:FolderHandle':
             return
 
-        file_url = "/".join(["{0}/service",
-                             ("com.ibm.team.filesystem.service.internal."
-                              "rest.IFilesystemContentService"),
-                             "-",
-                             ("{1}?itemId={2}&stateId={3}"
-                              "&platformLineDelimiter=CRLF")])
+        file_url = "/".join([
+            "{0}/service",
+            ("com.ibm.team.filesystem.service.internal."
+             "rest.IFilesystemContentService"), "-",
+            ("{1}?itemId={2}&stateId={3}"
+             "&platformLineDelimiter=CRLF")
+        ])
 
-        file_url = file_url.format(self.rtc_obj.url,
-                                   self.component,
-                                   self.item,
+        file_url = file_url.format(self.rtc_obj.url, self.component, self.item,
                                    state_id)
 
         self.log.debug("Start fetching file from %s ..." % file_url)
 
         resp = self.get(file_url,
-                        verify=False,
+                        verify=self.rtc_obj.verify,
                         headers=self.rtc_obj.headers)
-        file_name = re.findall(".+filename\*=UTF-8''(.+)",
+        file_name = re.findall(r".+filename\*=UTF-8''(.+)",
                                resp.headers["content-disposition"])[0]
         file_path = os.path.join(file_folder, file_name)
 
@@ -306,8 +320,8 @@ class Change(FieldBase):
         with open(file_path, "wb") as file_content:
             file_content.write(resp.content)
 
-        self.log.info("Successfully Fetching '%s' to '%s'" % (file_name,
-                                                              file_path))
+        self.log.info("Successfully Fetching '%s' to '%s'" %
+                      (file_name, file_path))
         return file_path
 
 
@@ -316,8 +330,12 @@ class Attachment(FieldBase):
 
     log = logging.getLogger("models.Attachment")
 
-    def __init__(self, url, rtc_obj, raw_data=None):
-        FieldBase.__init__(self, url, rtc_obj, raw_data)
+    def __init__(self, url, rtc_obj, raw_data=None, skip_full_attributes=True):
+        FieldBase.__init__(self,
+                           url,
+                           rtc_obj,
+                           raw_data,
+                           skip_full_attributes=skip_full_attributes)
 
     def __str__(self):
         return self.identifier + ": " + self.title

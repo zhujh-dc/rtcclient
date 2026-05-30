@@ -27,8 +27,9 @@ This library can help you:
 Python & Rational Team Concert Versions
 ---------------------------------------
 
-The project has been tested against ``Rational Team Concert`` **5.0.1** and
-**5.0.2** on Python 2.6, 2.7 and 3.3.
+This project has been tested against multiple Python versions, such as "3.7", "3.8", "3.9", "3.10" and "3.11".
+
+Please install **rtcclient** with version >= 0.9.0, which works well with ``Rational Team Concert`` 6.0.6.1, **5.0.1**, **5.0.2** and ``ELM`` 7.0.
 
 
 Important Links
